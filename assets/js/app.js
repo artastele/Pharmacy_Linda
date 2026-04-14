@@ -115,12 +115,21 @@ const loadInternDashboard = async () => {
         });
     });
     const policyResponse = await fetchJson('api/policies.php?action=list');
-    document.querySelector('#policies-list').innerHTML = policyResponse.policies.map(policy => `
-        <div class="section-card" style="padding:1rem;margin-bottom:1rem;">
-            <div style="display:flex;align-items:center;justify-content:space-between;"><div><strong>${policy.title}</strong><div class="small-note">Category: ${policy.category}</div></div></div>
-            <p>${policy.content}</p>
+    document.querySelector('#policies-list').innerHTML = policyResponse.policies.map((policy, index) => `
+        <div class="policy-title-box">
+            <div class="policy-title" data-id="${policy.id}"><strong>${index + 1}. ${policy.title}</strong></div>
+        </div>
+        <div class="policy-content-box" id="content-${policy.id}" style="display:none;">
+            ${policy.content}
         </div>
     `).join('');
+    document.querySelectorAll('.policy-title').forEach(title => {
+        title.addEventListener('click', () => {
+            const contentId = 'content-' + title.dataset.id;
+            const content = document.getElementById(contentId);
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+        });
+    });
 };
 
 const loadHRDashboard = async () => {

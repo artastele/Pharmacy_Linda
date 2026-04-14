@@ -114,6 +114,17 @@ const loadInternDashboard = async () => {
             }
         });
     });
+    const scheduleResponse = await fetchJson('api/interviews.php?action=intern_schedule');
+    const schedule = scheduleResponse.schedule;
+    document.querySelector('#interview-schedule').innerHTML = schedule ? `
+        <div class="notification-card">
+            <p><strong>Interview Date:</strong> ${new Date(schedule.interview_date).toLocaleString()}</p>
+            <p><strong>Mode:</strong> ${schedule.interview_mode}</p>
+            <p><strong>${schedule.interview_mode === 'Online' ? 'Meeting Link' : 'Location'}:</strong> ${schedule.interview_mode === 'Online' ? (schedule.interview_link ? `<a href="${schedule.interview_link}" target="_blank">${schedule.interview_link}</a>` : 'Not provided') : (schedule.interview_location || 'Not provided')}</p>
+            <p><strong>Status:</strong> ${schedule.status}</p>
+            <p><strong>Message:</strong> ${schedule.notification_message || 'No additional message.'}</p>
+        </div>
+    ` : '<div class="notification-card"><p>No interview schedule has been assigned yet. Please wait for HR to schedule your interview.</p></div>';
     const policyResponse = await fetchJson('api/policies.php?action=list');
     document.querySelector('#policies-list').innerHTML = policyResponse.policies.map((policy, index) => `
         <div class="policy-title-box">
@@ -130,6 +141,29 @@ const loadInternDashboard = async () => {
             content.style.display = content.style.display === 'none' ? 'block' : 'none';
         });
     });
+    try {
+        const myScheduleResponse = await fetchJson('api/schedules.php?action=get&intern_id=' + window.pageData.userId);
+        const mySchedule = myScheduleResponse.schedule;
+        document.querySelector('#my-schedule').innerHTML = mySchedule ? `
+            <table class="schedule-table">
+                <thead><tr><th>Day</th><th>Hours</th></tr></thead>
+                <tbody>
+                    <tr><td>Monday</td><td>${mySchedule.monday}</td></tr>
+                    <tr><td>Tuesday</td><td>${mySchedule.tuesday}</td></tr>
+                    <tr><td>Wednesday</td><td>${mySchedule.wednesday}</td></tr>
+                    <tr><td>Thursday</td><td>${mySchedule.thursday}</td></tr>
+                    <tr><td>Friday</td><td>${mySchedule.friday}</td></tr>
+                    <tr><td>Saturday</td><td>${mySchedule.saturday}</td></tr>
+                    <tr><td>Sunday</td><td>${mySchedule.sunday}</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Total Hours:</strong> ${mySchedule.total_hours}</p>
+            <p><strong>Notes:</strong> ${mySchedule.notes || 'None'}</p>
+        ` : '<p>No schedule assigned yet.</p>';
+    } catch (err) {
+        console.error('Error loading schedule:', err);
+        document.querySelector('#my-schedule').innerHTML = '<p>Unable to load schedule. Please try refreshing the page.</p>';
+    }
 };
 
 const loadHRDashboard = async () => {
@@ -214,6 +248,20 @@ const loadHRDashboard = async () => {
             const reviewData = new FormData(form);
             reviewData.append('id', id);
             await fetchJson('api/submissions.php?action=review', { method: 'POST', body: reviewData });
+            await loadHRDashboard();
+        });
+    });
+    // Load applicant approval
+    const approvalResponse = await fetchJson('api/applicants.php?action=list_pending_approval');
+    document.querySelector('#applicant-approval-table').innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Action</th></tr></thead><tbody>${approvalResponse.applicants.map(app => `
+            <tr>
+                <td>${app.full_name}</td>
+                <td>${app.email}</td>
+                <td><button class="action-btn approve-app" data-id="${app.id}">Approve for Interview</button></td>
+            </tr>`).join('')}</tbody></table>`;
+    document.querySelectorAll('.approve-app').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await fetchJson('api/applicants.php?action=approve&id=' + btn.dataset.id, { method: 'POST' });
             await loadHRDashboard();
         });
     });

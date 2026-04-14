@@ -21,6 +21,10 @@ $user = current_user();
                 <a href="#requirements">Manage Requirements</a>
                 <a href="#policies">Manage Policies</a>
                 <a href="#reviews">Review Submissions</a>
+                <a href="#approve">Approve Applicants</a>
+                <a href="interview_management.php">Interview Management</a>
+                <a href="schedule_management.php">Schedule Management</a>
+                <a href="moa_management.php">MOA Management</a>
                 <a href="logout.php">Logout</a>
             </nav>
         </aside>
@@ -81,6 +85,12 @@ $user = current_user();
                     <h2>Review Intern Submissions</h2>
                 </div>
                 <div id="submission-review-table" class="table-scroll"></div>
+            </section>
+            <section id="approve" class="section-card">
+                <div class="section-header">
+                    <h2>Approve Applicants</h2>
+                </div>
+                <div id="applicant-approval-table" class="table-scroll"></div>
             </section>
         </main>
     </div>

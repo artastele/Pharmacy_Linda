@@ -12,6 +12,9 @@ This system supports:
 - Requirement and policy management for HR
 - Intern document submission, review, and approval workflow
 - Completion tracking and reports for Pharmacists
+- Interview management and candidate assessments
+- Internship scheduling and staff scheduling
+- MOA verification and internship record management
 
 ## Features
 
@@ -88,6 +91,9 @@ This system supports:
 - `dashboard_intern.php` — Intern dashboard
 - `dashboard_hr.php` — HR dashboard
 - `dashboard_pharmacist.php` — Pharmacist dashboard
+- `interview_management.php` — HR interview and assessment management
+- `schedule_management.php` — HR schedule management
+- `moa_management.php` — HR MOA verification
 - `api/` — Backend REST-style endpoints
 - `assets/css/style.css` — UI styles
 - `assets/js/app.js` — Dashboard behavior

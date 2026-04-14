@@ -21,8 +21,8 @@ $policies = get_policies();
             <nav>
                 <a href="#home" class="active">Home</a>
                 <a href="#upload">Upload Requirements</a>
-                <a href="#checklist">Checklist</a>
-                <a href="#policies">Policies</a>
+                <a href="#checklist">Checklist</a>                <a href="#interview">Interview Schedule</a>                <a href="#policies">Policies</a>
+                <a href="intern_moa_management.php">MOA Management</a>
                 <a href="logout.php">Logout</a>
             </nav>
         </aside>
@@ -61,6 +61,12 @@ $policies = get_policies();
                     <div id="progress-text">0% complete</div>
                 </div>
             </section>
+            <section id="schedule" class="section-card">
+                <div class="section-header">
+                    <h2>My Schedule</h2>
+                </div>
+                <div id="my-schedule"></div>
+            </section>
             <section id="upload" class="section-card">
                 <div class="section-header">
                     <h2>Upload Requirements</h2>
@@ -73,6 +79,12 @@ $policies = get_policies();
                 </div>
                 <div id="checklist-table" class="table-scroll"></div>
             </section>
+            <section id="interview" class="section-card">
+                <div class="section-header">
+                    <h2>Interview Schedule</h2>
+                </div>
+                <div id="interview-schedule"></div>
+            </section>
             <section id="policies" class="section-card">
                 <div class="section-header">
                     <h2>Pharmacy Policies</h2>
@@ -82,7 +94,7 @@ $policies = get_policies();
         </main>
     </div>
     <script>
-        window.pageData = { role: 'Intern' };
+        window.pageData = { role: 'Intern', userId: <?php echo $user['id']; ?> };
     </script>
     <script src="assets/js/app.js"></script>
 </body>

@@ -81,6 +81,32 @@ switch ($action) {
         }
         $stmt = $pdo->prepare('UPDATE intern_submissions SET status = ?, remarks = ?, reviewed_at = NOW() WHERE id = ?');
         $stmt->execute([$status, $remarks, $id]);
+
+        // Check if all requirements are approved for this user
+        if ($status === 'Approved') {
+            $userStmt = $pdo->prepare('SELECT user_id FROM intern_submissions WHERE id = ?');
+            $userStmt->execute([$id]);
+            $userId = $userStmt->fetchColumn();
+
+            $totalReq = $pdo->query('SELECT COUNT(*) FROM internship_requirements')->fetchColumn();
+            $approvedCount = $pdo->prepare('SELECT COUNT(*) FROM intern_submissions WHERE user_id = ? AND status = "Approved"');
+            $approvedCount->execute([$userId]);
+            $approved = intval($approvedCount->fetchColumn());
+
+            if ($approved === intval($totalReq)) {
+                // All requirements approved, add to pending_applicants if not already there
+                $checkStmt = $pdo->prepare('SELECT id FROM pending_applicants WHERE intern_id = ?');
+                $checkStmt->execute([$userId]);
+                if (!$checkStmt->fetch()) {
+                    $userInfo = $pdo->prepare('SELECT full_name FROM users WHERE id = ?');
+                    $userInfo->execute([$userId]);
+                    $fullName = $userInfo->fetchColumn();
+                    $insertStmt = $pdo->prepare('INSERT INTO pending_applicants (intern_id, name, position_applied, status) VALUES (?, ?, "Pharmacy Intern", "Pending Interview")');
+                    $insertStmt->execute([$userId, $fullName]);
+                }
+            }
+        }
+
         send_json(['success' => true]);
         break;
 

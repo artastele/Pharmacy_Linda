@@ -46,11 +46,12 @@ CREATE TABLE IF NOT EXISTS intern_submissions (
 
 INSERT IGNORE INTO internship_requirements (title, description, created_at) VALUES
 ('Proof of Enrollment', 'Upload a valid school enrollment letter or student ID.', NOW()),
-('Emergency Contact Form', 'Upload the completed internship emergency contact form.', NOW()),
-('CV / Resume', 'Upload your current curriculum vitae or resume.', NOW()),
-('Signed Internship Agreement', 'Upload the signed internship agreement document.', NOW());
+('Birth Certificate', 'Upload a copy of your birth certificate.', NOW()),
+('Pre-Internship Requirements Clearance', 'Upload the pre-internship requirements clearance form.', NOW()),
+('Medical Certificate', 'Upload a valid medical certificate confirming fitness for internship.', NOW()),
+('Notarized Parental/Guardian Consent Form', 'Upload the notarized parental or guardian consent form.', NOW());
 
 INSERT IGNORE INTO policies (category, title, content, created_at) VALUES
-('General', 'Workplace Conduct', 'All interns must follow pharmacy policies, maintain professionalism, and ask questions when needed.', NOW()),
-('Safety', 'Medication Safety', 'Follow proper handling, labeling, and storage protocols for medications and inventory.', NOW()),
-('Schedule', 'Attendance & Punctuality', 'Arrive on time, notify HR for absences, and complete assigned daily tasks.', NOW());
+('General Pharmacy Operations', 'Workplace Conduct', 'All interns must follow pharmacy policies, maintain professionalism, and ask questions when needed.', NOW()),
+('Patient Safety and Medication Use', 'Medication Safety', 'Follow proper handling, labeling, and storage protocols for medications and inventory.', NOW()),
+('Pharmacist and Staff Responsibilities', 'Attendance & Punctuality', 'Arrive on time, notify HR for absences, and complete assigned daily tasks.', NOW());

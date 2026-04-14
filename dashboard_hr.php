@@ -69,7 +69,18 @@ $user = current_user();
                 <form id="policy-form" class="compact-form">
                     <input type="hidden" name="id" />
                     <label>Category</label>
-                    <input type="text" name="category" required />
+                    <select name="category" required>
+                        <option value="General Pharmacy Operations">General Pharmacy Operations</option>
+                        <option value="Medication Dispensing Policies">Medication Dispensing Policies</option>
+                        <option value="Inventory and Stock Management">Inventory and Stock Management</option>
+                        <option value="Controlled Substances and Regulatory Compliance">Controlled Substances and Regulatory Compliance</option>
+                        <option value="Patient Safety and Medication Use">Patient Safety and Medication Use</option>
+                        <option value="Pharmacist and Staff Responsibilities">Pharmacist and Staff Responsibilities</option>
+                        <option value="Data Privacy and Confidentiality">Data Privacy and Confidentiality</option>
+                        <option value="Quality Assurance and Auditing">Quality Assurance and Auditing</option>
+                        <option value="Emergency and Incident Reporting">Emergency and Incident Reporting</option>
+                        <option value="Continuing Education and Training">Continuing Education and Training</option>
+                    </select>
                     <label>Title</label>
                     <input type="text" name="title" required />
                     <label>Content</label>

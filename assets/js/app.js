@@ -64,18 +64,11 @@ const statusBadge = (status) => {
     return `<span class="${cls}">${status}</span>`;
 };
 
-const loadInternDashboard = async () => {
+const loadRequirementsPage = async () => {
     const response = await fetchJson('api/submissions.php?action=list_user');
     const items = response.items;
-    const total = items.length;
-    let uploaded = 0;
-    let approved = 0;
-    let missing = 0;
     const rows = items.map(item => {
         const status = item.status || 'Missing';
-        if (item.filename) uploaded++;
-        if (status === 'Approved') approved++;
-        if (status === 'Missing') missing++;
         return `<tr>
             <td>${item.title}</td>
             <td>${item.description}</td>
@@ -87,16 +80,8 @@ const loadInternDashboard = async () => {
         </tr>`;
     }).join('');
 
-    document.querySelector('#stat-total').textContent = total;
-    document.querySelector('#stat-uploaded').textContent = uploaded;
-    document.querySelector('#stat-approved').textContent = approved;
-    document.querySelector('#stat-missing').textContent = missing;
-    const completePercent = total ? Math.round((approved / total) * 100) : 0;
-    document.querySelector('#progress-bar').style.width = `${completePercent}%`;
-    document.querySelector('#progress-text').textContent = `${completePercent}% complete`;
     document.querySelector('#requirements-list').innerHTML = `
         <table><thead><tr><th>Requirement</th><th>Description</th><th>File</th><th>Status</th><th>Remark</th><th>Uploaded</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`;
-    document.querySelector('#checklist-table').innerHTML = document.querySelector('#requirements-list').innerHTML;
     document.querySelectorAll('.upload-form').forEach(form => {
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -108,23 +93,34 @@ const loadInternDashboard = async () => {
             payload.append('document', file);
             try {
                 await fetchJson('api/submissions.php?action=upload', { method: 'POST', body: payload });
-                await loadInternDashboard();
+                await loadRequirementsPage();
             } catch (err) {
                 alert(err.message);
             }
         });
     });
-    const scheduleResponse = await fetchJson('api/interviews.php?action=intern_schedule');
-    const schedule = scheduleResponse.schedule;
-    document.querySelector('#interview-schedule').innerHTML = schedule ? `
-        <div class="notification-card">
-            <p><strong>Interview Date:</strong> ${new Date(schedule.interview_date).toLocaleString()}</p>
-            <p><strong>Mode:</strong> ${schedule.interview_mode}</p>
-            <p><strong>${schedule.interview_mode === 'Online' ? 'Meeting Link' : 'Location'}:</strong> ${schedule.interview_mode === 'Online' ? (schedule.interview_link ? `<a href="${schedule.interview_link}" target="_blank">${schedule.interview_link}</a>` : 'Not provided') : (schedule.interview_location || 'Not provided')}</p>
-            <p><strong>Status:</strong> ${schedule.status}</p>
-            <p><strong>Message:</strong> ${schedule.notification_message || 'No additional message.'}</p>
-        </div>
-    ` : '<div class="notification-card"><p>No interview schedule has been assigned yet. Please wait for HR to schedule your interview.</p></div>';
+};
+
+const loadChecklistPage = async () => {
+    const response = await fetchJson('api/submissions.php?action=list_user');
+    const items = response.items;
+    const rows = items.map(item => {
+        const status = item.status || 'Missing';
+        return `<tr>
+            <td>${item.title}</td>
+            <td>${item.description}</td>
+            <td>${item.filename ? `<a href="uploads/${item.filename}" target="_blank">View</a>` : 'No file'}</td>
+            <td>${statusBadge(status)}</td>
+            <td>${item.remarks || '—'}</td>
+            <td>${item.uploaded_at ? new Date(item.uploaded_at).toLocaleDateString() : '—'}</td>
+        </tr>`;
+    }).join('');
+
+    document.querySelector('#checklist-table').innerHTML = `
+        <table><thead><tr><th>Requirement</th><th>Description</th><th>File</th><th>Status</th><th>Remark</th><th>Uploaded</th></tr></thead><tbody>${rows}</tbody></table>`;
+};
+
+const loadPoliciesPage = async () => {
     const policyResponse = await fetchJson('api/policies.php?action=list');
     document.querySelector('#policies-list').innerHTML = policyResponse.policies.map((policy, index) => `
         <div class="policy-title-box">
@@ -141,29 +137,6 @@ const loadInternDashboard = async () => {
             content.style.display = content.style.display === 'none' ? 'block' : 'none';
         });
     });
-    try {
-        const myScheduleResponse = await fetchJson('api/schedules.php?action=get&intern_id=' + window.pageData.userId);
-        const mySchedule = myScheduleResponse.schedule;
-        document.querySelector('#my-schedule').innerHTML = mySchedule ? `
-            <table class="schedule-table">
-                <thead><tr><th>Day</th><th>Hours</th></tr></thead>
-                <tbody>
-                    <tr><td>Monday</td><td>${mySchedule.monday}</td></tr>
-                    <tr><td>Tuesday</td><td>${mySchedule.tuesday}</td></tr>
-                    <tr><td>Wednesday</td><td>${mySchedule.wednesday}</td></tr>
-                    <tr><td>Thursday</td><td>${mySchedule.thursday}</td></tr>
-                    <tr><td>Friday</td><td>${mySchedule.friday}</td></tr>
-                    <tr><td>Saturday</td><td>${mySchedule.saturday}</td></tr>
-                    <tr><td>Sunday</td><td>${mySchedule.sunday}</td></tr>
-                </tbody>
-            </table>
-            <p><strong>Total Hours:</strong> ${mySchedule.total_hours}</p>
-            <p><strong>Notes:</strong> ${mySchedule.notes || 'None'}</p>
-        ` : '<p>No schedule assigned yet.</p>';
-    } catch (err) {
-        console.error('Error loading schedule:', err);
-        document.querySelector('#my-schedule').innerHTML = '<p>Unable to load schedule. Please try refreshing the page.</p>';
-    }
 };
 
 const loadHRDashboard = async () => {
@@ -285,7 +258,17 @@ const loadPharmacistDashboard = async () => {
 };
 
 if (pageRole === 'Intern') {
-    loadInternDashboard().catch(console.error);
+    // Check which page we're on and load appropriate data
+    if (document.querySelector('#requirements-list')) {
+        loadRequirementsPage().catch(console.error);
+    } else if (document.querySelector('#checklist-table')) {
+        loadChecklistPage().catch(console.error);
+    } else if (document.querySelector('#policies-list')) {
+        loadPoliciesPage().catch(console.error);
+    } else {
+        // Main dashboard
+        loadInternDashboard().catch(console.error);
+    }
 }
 if (pageRole === 'HR Personnel') {
     loadHRDashboard().catch(console.error);

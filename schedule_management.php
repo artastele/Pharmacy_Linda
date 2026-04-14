@@ -24,6 +24,7 @@ $allUsers = $stmtUsers->fetchAll();
                 <a href="dashboard_hr.php#requirements">Manage Requirements</a>
                 <a href="dashboard_hr.php#policies">Manage Policies</a>
                 <a href="dashboard_hr.php#reviews">Review Submissions</a>
+                <a href="dashboard_hr.php#approve">Approve Applicants</a>
                 <a href="interview_management.php">Interview Management</a>
                 <a href="schedule_management.php" class="active">Schedule Management</a>
                 <a href="moa_management.php">MOA Management</a>

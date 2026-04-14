@@ -5,6 +5,21 @@ require_role('Intern');
 $user = current_user();
 $requirements = get_requirements();
 $policies = get_policies();
+
+$taskCount = 0;
+$taskSummary = [];
+try {
+    $tableCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'tasks'");
+    $tableCheck->execute();
+    if ((int) $tableCheck->fetchColumn() > 0) {
+        $taskCount = (int) $pdo->query('SELECT COUNT(*) FROM tasks')->fetchColumn();
+        if ($taskCount > 0) {
+            $taskSummary = $pdo->query('SELECT task_id, task_name, status, deadline FROM tasks ORDER BY task_id DESC LIMIT 5')->fetchAll();
+        }
+    }
+} catch (PDOException $e) {
+    // ignore missing tasks table
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,9 +35,12 @@ $policies = get_policies();
             <div class="sidebar-brand">Pharmacy Internship</div>
             <nav>
                 <a href="#home" class="active">Home</a>
-                <a href="#upload">Upload Requirements</a>
-                <a href="#checklist">Checklist</a>                <a href="#interview">Interview Schedule</a>                <a href="#policies">Policies</a>
+                <a href="requirements_upload.php">Upload Requirements</a>
+                <a href="checklist.php">Checklist</a>
+                <a href="policies.php">Policies</a>
                 <a href="intern_moa_management.php">MOA Management</a>
+                <a href="process7_9_inventory.php">Inventory & Tasks</a>
+                <a href="process7_9_orientation.php">Orientation Tracker</a>
                 <a href="logout.php">Logout</a>
             </nav>
         </aside>
@@ -67,29 +85,48 @@ $policies = get_policies();
                 </div>
                 <div id="my-schedule"></div>
             </section>
-            <section id="upload" class="section-card">
-                <div class="section-header">
-                    <h2>Upload Requirements</h2>
-                </div>
-                <div id="requirements-list" class="table-scroll"></div>
-            </section>
-            <section id="checklist" class="section-card">
-                <div class="section-header">
-                    <h2>Checklist Status</h2>
-                </div>
-                <div id="checklist-table" class="table-scroll"></div>
-            </section>
             <section id="interview" class="section-card">
                 <div class="section-header">
                     <h2>Interview Schedule</h2>
                 </div>
                 <div id="interview-schedule"></div>
             </section>
-            <section id="policies" class="section-card">
+            <section id="tasks" class="section-card">
                 <div class="section-header">
-                    <h2>Pharmacy Policies</h2>
+                    <h2>Assigned Tasks</h2>
                 </div>
-                <div id="policies-list"></div>
+                <p class="section-copy">Your HR-assigned tasks are reflected here for quick reference.</p>
+                <?php if ($taskCount > 0): ?>
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Task ID</th>
+                                    <th>Task</th>
+                                    <th>Status</th>
+                                    <th>Deadline</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($taskSummary as $task): ?>
+                                    <tr>
+                                        <td><?php echo (int) $task['task_id']; ?></td>
+                                        <td><?php echo sanitize_text($task['task_name']); ?></td>
+                                        <td><?php echo sanitize_text($task['status']); ?></td>
+                                        <td><?php echo sanitize_text($task['deadline']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="section-actions">
+                        <a class="btn btn-secondary" href="process7_9_inventory.php">View all inventory & tasks</a>
+                    </div>
+                <?php else: ?>
+                    <div class="empty-state">
+                        No tasks have been assigned yet. Visit <a href="process7_9_inventory.php">Inventory & Tasks</a> for details.
+                    </div>
+                <?php endif; ?>
             </section>
         </main>
     </div>

@@ -46,8 +46,13 @@ $tasks = $pdo->query('SELECT task_id, employee_name, task_name, description, sta
         </aside>
         <main class="main-content">
             <header class="topbar">
-                <h1>Inventory & Tasks</h1>
-                <div>Welcome, <?php echo sanitize_text($currentUser['full_name']); ?></div>
+                <div>
+                    <h1>Inventory & Tasks</h1>
+                    <div>Welcome, <?php echo sanitize_text($currentUser['full_name']); ?></div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <a href="create_inventory_report.php" class="btn btn-primary">Create Inventory Report</a>
+                </div>
             </header>
             <?php if ($message): ?>
                 <div class="message"><?php echo $message; ?></div>

@@ -25,6 +25,7 @@ if (loginForm) {
             if (role === 'Intern') window.location.href = 'dashboard_intern.php';
             if (role === 'HR Personnel') window.location.href = 'dashboard_hr.php';
             if (role === 'Pharmacist') window.location.href = 'dashboard_pharmacist.php';
+            if (role === 'Pharmacy Technician') window.location.href = 'dashboard_technician.php';
         } catch (error) {
             showMessage('#login-message', error.message, true);
         }
@@ -255,6 +256,92 @@ const loadPharmacistDashboard = async () => {
                 <td>${item.percentage}%</td>
                 <td>${statusBadge(item.status)}</td>
             </tr>`).join('')}</tbody></table>`;
+};
+
+const loadInternDashboard = async () => {
+    const userId = window.pageData?.userId;
+    if (!userId) return;
+
+    // Load intern's schedule
+    try {
+        const scheduleResponse = await fetchJson('api/schedules.php?action=get');
+        if (scheduleResponse.success && scheduleResponse.schedule) {
+            const schedule = scheduleResponse.schedule;
+            const scheduleHtml = `
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Monday</td><td>${schedule.monday || 'Off'}</td></tr>
+                        <tr><td>Tuesday</td><td>${schedule.tuesday || 'Off'}</td></tr>
+                        <tr><td>Wednesday</td><td>${schedule.wednesday || 'Off'}</td></tr>
+                        <tr><td>Thursday</td><td>${schedule.thursday || 'Off'}</td></tr>
+                        <tr><td>Friday</td><td>${schedule.friday || 'Off'}</td></tr>
+                        <tr><td>Saturday</td><td>${schedule.saturday || 'Off'}</td></tr>
+                        <tr><td>Sunday</td><td>${schedule.sunday || 'Off'}</td></tr>
+                    </tbody>
+                </table>
+                ${schedule.total_hours ? `<p><strong>Total Hours:</strong> ${schedule.total_hours}</p>` : ''}
+                ${schedule.notes ? `<p><strong>Notes:</strong> ${schedule.notes}</p>` : ''}
+            `;
+            document.querySelector('#my-schedule').innerHTML = scheduleHtml;
+        } else {
+            document.querySelector('#my-schedule').innerHTML = '<p class="empty-state">No schedule has been assigned yet. Please contact HR for your work schedule.</p>';
+        }
+    } catch (error) {
+        document.querySelector('#my-schedule').innerHTML = '<p class="empty-state">Unable to load schedule. Please try again later.</p>';
+        console.error('Error loading schedule:', error);
+    }
+
+    // Load interview schedule
+    try {
+        const interviewResponse = await fetchJson('api/interviews.php?action=intern_schedule');
+        if (interviewResponse.success && interviewResponse.schedule) {
+            const interview = interviewResponse.schedule;
+            const interviewHtml = `
+                <div class="interview-card">
+                    <h4>${interview.interview_mode || 'Online'} Interview</h4>
+                    <p><strong>Date:</strong> ${interview.interview_date ? new Date(interview.interview_date).toLocaleDateString() : 'TBD'}</p>
+                    ${interview.interview_location ? `<p><strong>Location:</strong> ${interview.interview_location}</p>` : ''}
+                    ${interview.interview_link ? `<p><strong>Link:</strong> <a href="${interview.interview_link}" target="_blank">${interview.interview_link}</a></p>` : ''}
+                    ${interview.notification_message ? `<p><strong>Message:</strong> ${interview.notification_message}</p>` : ''}
+                </div>
+            `;
+            document.querySelector('#interview-schedule').innerHTML = interviewHtml;
+        } else {
+            document.querySelector('#interview-schedule').innerHTML = '<p class="empty-state">No upcoming interviews scheduled.</p>';
+        }
+    } catch (error) {
+        document.querySelector('#interview-schedule').innerHTML = '<p class="empty-state">Unable to load interview schedule.</p>';
+        console.error('Error loading interview:', error);
+    }
+
+    // Load requirements stats
+    try {
+        const statsResponse = await fetchJson('api/submissions.php?action=list_user');
+        if (statsResponse.success && statsResponse.items) {
+            const items = statsResponse.items;
+            const total = items.length;
+            const uploaded = items.filter(item => item.filename).length;
+            const approved = items.filter(item => item.status === 'Approved').length;
+            const missing = total - uploaded;
+
+            document.querySelector('#stat-total').textContent = total;
+            document.querySelector('#stat-uploaded').textContent = uploaded;
+            document.querySelector('#stat-approved').textContent = approved;
+            document.querySelector('#stat-missing').textContent = missing;
+
+            const percentage = total > 0 ? Math.round((approved / total) * 100) : 0;
+            document.querySelector('#progress-bar').style.width = `${percentage}%`;
+            document.querySelector('#progress-text').textContent = `${percentage}% complete`;
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+    }
 };
 
 if (pageRole === 'Intern') {

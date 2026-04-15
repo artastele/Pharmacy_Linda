@@ -39,7 +39,9 @@ try {
                 <a href="checklist.php">Checklist</a>
                 <a href="policies.php">Policies</a>
                 <a href="intern_moa_management.php">MOA Management</a>
-                <a href="process7_9_inventory.php">Inventory & Tasks</a>
+                <a href="manage_product_inventory.php">Manage Products</a>
+                <a href="create_inventory_report.php">Create Inventory Report</a>
+                <a href="process7_9_tasks.php">My Tasks</a>
                 <a href="process7_9_orientation.php">Orientation Tracker</a>
                 <a href="logout.php">Logout</a>
             </nav>
@@ -53,6 +55,36 @@ try {
                 <div class="section-header">
                     <h2>Progress Overview</h2>
                 </div>
+
+                <?php
+                // Check for denied reports (with safety check for column existence)
+                try {
+                    $deniedReports = $pdo->query("SELECT report_id, report_date, ward, denial_remarks FROM p1014_inventory_reports WHERE status='denied' AND created_by='{$user['full_name']}' ORDER BY report_date DESC LIMIT 5")->fetchAll();
+                } catch (PDOException $e) {
+                    // Column doesn't exist yet, try without denial_remarks
+                    $deniedReports = $pdo->query("SELECT report_id, report_date, ward, '' as denial_remarks FROM p1014_inventory_reports WHERE status='denied' AND created_by='{$user['full_name']}' ORDER BY report_date DESC LIMIT 5")->fetchAll();
+                }
+                
+                if (count($deniedReports) > 0):
+                ?>
+                <div class="ls-alert ls-alert-danger" style="margin-bottom:20px">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>You have <?= count($deniedReports) ?> denied report(s)</strong>
+                    <?php foreach ($deniedReports as $dr): ?>
+                        <div style="margin-top:12px;padding:12px;background:rgba(0,0,0,0.2);border-radius:6px">
+                            <strong>Report #<?= $dr['report_id'] ?></strong> (<?= $dr['ward'] ?> - <?= date('M d, Y', strtotime($dr['report_date'])) ?>)
+                            <?php if (!empty($dr['denial_remarks'])): ?>
+                            <div style="margin-top:6px;color:#fca5a5">
+                                <strong>Reason:</strong> <?= htmlspecialchars($dr['denial_remarks']) ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                    <div style="margin-top:12px">
+                        <a href="create_inventory_report.php" style="color:#fff;text-decoration:underline">Create a new report</a> with the corrections.
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <span>Total requirements</span>
@@ -119,7 +151,7 @@ try {
                             </tbody>
                         </table>
                     </div>
-                    <div class="section-actions">
+                    <div style="margin-top:16px;">
                         <a class="btn btn-secondary" href="process7_9_inventory.php">View all inventory & tasks</a>
                     </div>
                 <?php else: ?>
@@ -128,6 +160,7 @@ try {
                     </div>
                 <?php endif; ?>
             </section>
+        
         </main>
     </div>
     <script>
